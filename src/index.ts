@@ -39,27 +39,59 @@ app.get('/', (c) => {
 app.post('/create-draft-order', async (c) => {
   const { email, postalCode, lineItems, customer } = await c.req.json();
 
-  const IS_MILDA = email === 'milldabakery@gmail.com';
+  const MILDA_DISCOUNT =
+    email === 'milldabakery@gmail.com'
+      ? {
+          description: 'Milda 100% Off',
+          value: '100.0',
+          value_type: 'percentage',
+        }
+      : undefined;
 
-  const IS_PM_TABLEWARE =
+  const PM_TABLEWARE_DISCOUNT =
     (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
     lineItems.every((item: any) =>
       item.title.toLowerCase().includes('tableware')
-    );
+    )
+      ? {
+          description: 'PM Tableware 100% Off',
+          value: '100.0',
+          value_type: 'percentage',
+        }
+      : undefined;
 
-  const IS_PM_PRODUCT =
+  const PM_PRODUCT_DISCOUNT =
     (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
-    lineItems.every((item: any) => item.vendor === 'PM');
+    lineItems.every((item: any) => item.vendor === 'PM')
+      ? {
+          description: 'PM Products 100% Off',
+          value: '100.0',
+          value_type: 'percentage',
+        }
+      : undefined;
 
-  const IS_HQ_PRODUCT =
+  const HQ_DISCOUNT =
     (email === 'ordercmarket@gmail.com' || email === TEST_EMAIL) &&
-    lineItems.every((item: any) => item.vendor === 'HQ');
+    lineItems.every((item: any) => item.vendor === 'HQ')
+      ? {
+          description: 'HQ Products 100% Off',
+          value: '100.0',
+          value_type: 'percentage',
+        }
+      : undefined;
 
-  const IS_WILDERSNAILCOFFEE_DISCOUNT =
+  const WILDER_SNI_DISCOUNT =
     (email === 'woochanp@gmail.com' || email === TEST_EMAIL) &&
     lineItems.every((item: any) =>
       WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
-    );
+    )
+      ? {
+          description: 'WilderSnailCoffee 2$ Off',
+          value: '2.0',
+          value_type: 'amount',
+          amount: '2.0',
+        }
+      : undefined;
 
   const prefix = postalCode.slice(0, 3).toUpperCase();
   const zoneInfo = getShippingZone(prefix);
@@ -113,32 +145,12 @@ app.post('/create-draft-order', async (c) => {
           quantity: 1,
         },
       ],
-      applied_discount: IS_MILDA
-        ? {
-            description: 'Milda 100% Off',
-            value: '100.0',
-            value_type: 'percentage',
-          }
-        : IS_WILDERSNAILCOFFEE_DISCOUNT
-        ? {
-            description: 'WilderSnailCoffee 2$ Off',
-            value: '2.0',
-            value_type: 'amount',
-            amount: '2.0',
-          }
-        : IS_HQ_PRODUCT || IS_PM_PRODUCT || IS_PM_TABLEWARE
-        ? {
-            description: 'Your products - 100% Off',
-            value: '100.0',
-            value_type: 'percentage',
-          }
-        : CMARKET_5_DISCOUNT_EMAILS.includes(email)
-        ? {
-            description: '5% Off for CMarket',
-            value: '5.0',
-            value_type: 'percentage',
-          }
-        : undefined,
+      applied_discount:
+        MILDA_DISCOUNT ||
+        HQ_DISCOUNT ||
+        PM_PRODUCT_DISCOUNT ||
+        PM_TABLEWARE_DISCOUNT ||
+        WILDER_SNI_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
     },
