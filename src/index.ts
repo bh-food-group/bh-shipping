@@ -61,8 +61,6 @@ app.post('/create-draft-order', async (c) => {
       WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
     );
 
-  console.log({ lineItems });
-
   const prefix = postalCode.slice(0, 3).toUpperCase();
   const zoneInfo = getShippingZone(prefix);
 
