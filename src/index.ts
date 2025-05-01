@@ -38,7 +38,7 @@ app.post('/create-draft-order', async (c) => {
   const IS_PM_TABLEWARE =
     (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
     lineItems.every((item: any) =>
-      item.product_title.toLowerCase().includes('tableware')
+      item.title.toLowerCase().includes('tableware')
     );
 
   const IS_HQ_PRODUCT =
