@@ -47,6 +47,10 @@ app.post('/create-draft-order', async (c) => {
       item.title.toLowerCase().includes('tableware')
     );
 
+  const IS_PM_PRODUCT =
+    (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
+    lineItems.every((item: any) => item.vendor === 'PM');
+
   const IS_HQ_PRODUCT =
     (email === 'ordercmarket@gmail.com' || email === TEST_EMAIL) &&
     lineItems.every((item: any) => item.vendor === 'HQ');
@@ -124,9 +128,9 @@ app.post('/create-draft-order', async (c) => {
             value_type: 'amount',
             amount: '2.0',
           }
-        : IS_HQ_PRODUCT || IS_PM_TABLEWARE
+        : IS_HQ_PRODUCT || IS_PM_PRODUCT || IS_PM_TABLEWARE
         ? {
-            description: '100% Off',
+            description: 'Your products - 100% Off',
             value: '100.0',
             value_type: 'percentage',
           }
