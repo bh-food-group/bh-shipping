@@ -10,6 +10,7 @@ app.use('*', cors());
 const TEST_EMAIL = 'earlyoonj@gmail.com';
 
 const CMARKET_FREE_SHIPPING_EMAILS = [
+  'earlyoonj@gmail.com',
   'milldabakery@gmail.com',
   'ordercmarket@gmail.com',
   'pm@cmarket.ca',
