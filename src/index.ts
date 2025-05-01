@@ -89,7 +89,7 @@ app.post('/create-draft-order', async (c) => {
     : undefined;
 
   const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) =>
-    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
+    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.product_id)
   );
 
   const WILDERSNAILCOFFEE_DISCOUNT =
