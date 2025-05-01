@@ -7,7 +7,7 @@ const app = new Hono();
 
 app.use('*', cors());
 
-const TEST_EMAIL = '';
+const TEST_EMAIL = 'earlyoonj@gmail.com';
 
 const WILDERSNAILCOFFEE_DISCOUNT_IDS = [
   7082155933744, 7082155966512, 7082156032048, 7082156130352, 7082156195888,
@@ -80,16 +80,25 @@ app.post('/create-draft-order', async (c) => {
         }
       : undefined;
 
-  const WILDER_SNI_DISCOUNT =
+  const CMARKET_5_DISCOUNT = CMARKET_5_DISCOUNT_EMAILS.includes(email)
+    ? {
+        description: '5% Off for CMarket',
+        value: '5.0',
+        value_type: 'percentage',
+      }
+    : undefined;
+
+  const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) =>
+    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
+  );
+
+  const WILDERSNAILCOFFEE_DISCOUNT =
     (email === 'woochanp@gmail.com' || email === TEST_EMAIL) &&
-    lineItems.every((item: any) =>
-      WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
-    )
+    !!wilderSnailCoffeeDiscountItems.length
       ? {
           description: 'WilderSnailCoffee 2$ Off',
-          value: '2.0',
+          value: (wilderSnailCoffeeDiscountItems.length * 2).toFixed(2),
           value_type: 'amount',
-          amount: '2.0',
         }
       : undefined;
 
@@ -150,7 +159,8 @@ app.post('/create-draft-order', async (c) => {
         HQ_DISCOUNT ||
         PM_PRODUCT_DISCOUNT ||
         PM_TABLEWARE_DISCOUNT ||
-        WILDER_SNI_DISCOUNT,
+        CMARKET_5_DISCOUNT ||
+        WILDERSNAILCOFFEE_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
     },
