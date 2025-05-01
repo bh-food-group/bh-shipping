@@ -2,7 +2,8 @@
 	"name": "bhfood-shipping",
 	"scripts": {
 		"dev": "wrangler dev",
-		"deploy": "wrangler deploy --minify",
+		"build": "node build.js",
+		"deploy": "wrangler deploy",
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
@@ -10,6 +11,8 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250430.0",
+		"@hono/vite-dev-server": "^0.19.0",
+		"esbuild": "^0.25.3",
 		"wrangler": "^4.13.2"
 	}
 }
