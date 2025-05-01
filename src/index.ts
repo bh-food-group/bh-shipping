@@ -7,10 +7,15 @@ const app = new Hono();
 
 app.use('*', cors());
 
-const TEST_EMAIL = 'earlyoonj@gmail.com';
+const TEST_EMAIL = '';
+
+const WILDERSNAILCOFFEE_DISCOUNT_IDS = [
+  7082155933744, 7082155966512, 7082156032048, 7082156130352, 7082156195888,
+  7082156261424, 7082156294192, 8134116507957, 8134118867253, 8233508471093,
+  8807683948853, 8807686275381, 9949616963893,
+];
 
 const CMARKET_FREE_SHIPPING_EMAILS = [
-  'earlyoonj@gmail.com',
   'milldabakery@gmail.com',
   'ordercmarket@gmail.com',
   'pm@cmarket.ca',
@@ -34,7 +39,7 @@ app.get('/', (c) => {
 app.post('/create-draft-order', async (c) => {
   const { email, postalCode, lineItems, customer } = await c.req.json();
 
-  console.log(lineItems);
+  const IS_MILDA = email === 'milldabakery@gmail.com';
 
   const IS_PM_TABLEWARE =
     (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
@@ -45,6 +50,14 @@ app.post('/create-draft-order', async (c) => {
   const IS_HQ_PRODUCT =
     (email === 'ordercmarket@gmail.com' || email === TEST_EMAIL) &&
     lineItems.every((item: any) => item.vendor === 'HQ');
+
+  const IS_WILDERSNAILCOFFEE_DISCOUNT =
+    (email === 'woochanp@gmail.com' || email === TEST_EMAIL) &&
+    lineItems.every((item: any) =>
+      WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.id)
+    );
+
+  console.log({ lineItems });
 
   const prefix = postalCode.slice(0, 3).toUpperCase();
   const zoneInfo = getShippingZone(prefix);
@@ -87,31 +100,43 @@ app.post('/create-draft-order', async (c) => {
       line_items: [
         ...lineItems,
         {
-          title:
-            (CMARKET_FREE_SHIPPING_EMAILS.includes(email)
-              ? 'Free'
-              : zoneInfo.zone) +
-            (shippingFee === 0 ? ' Free' : '') +
-            ' Shipping' +
-            (shippingFee === 0 ? ' (over ' + zoneInfo.minimumOrder + ')' : ''),
+          title: CMARKET_FREE_SHIPPING_EMAILS.includes(email)
+            ? 'Free Shipping for CMarket'
+            : (+shippingFee === 0 ? 'Free' : zoneInfo.zone) +
+              ' Shipping' +
+              (+shippingFee === 0
+                ? ' (over ' + zoneInfo.minimumOrder + ')'
+                : ''),
           price: shippingFee,
           quantity: 1,
         },
       ],
-      applied_discount:
-        IS_HQ_PRODUCT || IS_PM_TABLEWARE
-          ? {
-              description: '100% Off',
-              value: '100.0',
-              value_type: 'percentage',
-            }
-          : CMARKET_5_DISCOUNT_EMAILS.includes(email)
-          ? {
-              description: '5% Off for CMarket',
-              value: '5.0',
-              value_type: 'percentage',
-            }
-          : undefined,
+      applied_discount: IS_MILDA
+        ? {
+            description: 'Milda 100% Off',
+            value: '100.0',
+            value_type: 'percentage',
+          }
+        : IS_WILDERSNAILCOFFEE_DISCOUNT
+        ? {
+            description: 'WilderSnailCoffee 2$ Off',
+            value: '2.0',
+            value_type: 'amount',
+            amount: '2.0',
+          }
+        : IS_HQ_PRODUCT || IS_PM_TABLEWARE
+        ? {
+            description: '100% Off',
+            value: '100.0',
+            value_type: 'percentage',
+          }
+        : CMARKET_5_DISCOUNT_EMAILS.includes(email)
+        ? {
+            description: '5% Off for CMarket',
+            value: '5.0',
+            value_type: 'percentage',
+          }
+        : undefined,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
     },
