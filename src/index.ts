@@ -49,7 +49,7 @@ app.post('/create-draft-order', async (c) => {
       : undefined;
 
   const PM_TABLEWARE_DISCOUNT =
-    (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
+    email === 'pm@cmarket.ca' &&
     lineItems.every((item: any) =>
       item.title.toLowerCase().includes('tableware')
     )
@@ -61,7 +61,7 @@ app.post('/create-draft-order', async (c) => {
       : undefined;
 
   const PM_PRODUCT_DISCOUNT =
-    (email === 'pm@cmarket.ca' || email === TEST_EMAIL) &&
+    email === 'pm@cmarket.ca' &&
     lineItems.every((item: any) => item.vendor === 'PM')
       ? {
           description: 'PM Products 100% Off',
@@ -71,7 +71,7 @@ app.post('/create-draft-order', async (c) => {
       : undefined;
 
   const HQ_DISCOUNT =
-    (email === 'ordercmarket@gmail.com' || email === TEST_EMAIL) &&
+    email === 'ordercmarket@gmail.com' &&
     lineItems.every((item: any) => item.vendor === 'HQ')
       ? {
           description: 'HQ Products 100% Off',
@@ -97,7 +97,12 @@ app.post('/create-draft-order', async (c) => {
     !!wilderSnailCoffeeDiscountItems.length
       ? {
           description: 'WilderSnailCoffee 2$ Off',
-          value: (wilderSnailCoffeeDiscountItems.length * 2).toFixed(2),
+          value: (
+            wilderSnailCoffeeDiscountItems.reduce(
+              (acc: number, curr: any) => acc + curr.quantity,
+              0
+            ) * 2
+          ).toFixed(2),
           value_type: 'amount',
         }
       : undefined;
