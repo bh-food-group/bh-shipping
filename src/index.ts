@@ -197,11 +197,42 @@ app.post('/create-draft-order', async (c) => {
       return c.json({ error: 'No invoice url returned' }, 500);
     }
 
-    return c.json({ invoiceUrl: data.draft_order.invoice_url });
+    return c.json({
+      id: data.draft_order.id,
+      invoiceUrl: data.draft_order.invoice_url,
+    });
   } catch (err: any) {
     console.error(err);
     return c.json({ error: 'Failed to create draft order.' }, 500);
   }
+});
+
+app.put('/complete-draft-order', async (c) => {
+  const { id } = await c.req.json();
+
+  const { SHOP, SHOPIFY_ADMIN_API_TOKEN } = env(c);
+
+  const resp = await fetch(
+    `https://${SHOP}/admin/api/2025-04/draft_orders/${id}/complete.json`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({
+        payment_pending: true,
+      }),
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN as string,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!resp.ok) {
+    const errorText = await resp.text();
+    console.error('Shopify API Error Response:', errorText);
+    return c.json({ error: `Shopify error: ${errorText}` }, 500);
+  }
+
+  return c.json({ message: '주문이 완료되었습니다.\nOrder completed.' });
 });
 
 export default app;
