@@ -145,20 +145,15 @@ app.post('/create-draft-order', async (c) => {
   const draftOrderPayload = {
     draft_order: {
       email,
-      line_items: [
-        ...lineItems,
-        {
-          title: CMARKET_FREE_SHIPPING_EMAILS.includes(email)
-            ? 'Free Shipping for CMarket'
-            : (+shippingFee === 0 ? 'Free' : zoneInfo.zone) +
-              ' Shipping' +
-              (+shippingFee === 0
-                ? ' (over ' + zoneInfo.minimumOrder + ')'
-                : ''),
-          price: shippingFee,
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
+      shipping_line: {
+        title: CMARKET_FREE_SHIPPING_EMAILS.includes(email)
+          ? 'Free Shipping for CMarket'
+          : (+shippingFee === 0 ? 'Free' : zoneInfo.zone) +
+            ' Shipping' +
+            (+shippingFee === 0 ? ' (over ' + zoneInfo.minimumOrder + ')' : ''),
+        price: shippingFee,
+      },
       applied_discount:
         MILDA_DISCOUNT ||
         HQ_DISCOUNT ||
