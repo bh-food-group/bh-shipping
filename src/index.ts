@@ -37,7 +37,8 @@ app.get('/', (c) => {
 });
 
 app.post('/create-draft-order', async (c) => {
-  const { email, postalCode, lineItems, customer } = await c.req.json();
+  const { email, postalCode, lineItems, customer, isPickup } =
+    await c.req.json();
 
   const MILDA_DISCOUNT =
     email === 'milldabakery@gmail.com'
@@ -110,7 +111,7 @@ app.post('/create-draft-order', async (c) => {
   const prefix = postalCode.slice(0, 3).toUpperCase();
   const zoneInfo = getShippingZone(prefix);
 
-  if (!zoneInfo) {
+  if (!isPickup && !zoneInfo) {
     return c.json(
       {
         error:
@@ -121,7 +122,7 @@ app.post('/create-draft-order', async (c) => {
   }
 
   let shippingFee = 0;
-  if (!CMARKET_FREE_SHIPPING_EMAILS.includes(email)) {
+  if (!isPickup && !CMARKET_FREE_SHIPPING_EMAILS.includes(email) && zoneInfo) {
     if (zoneInfo.minimumOrder && zoneInfo.fee) {
       const subtotal = lineItems.reduce(
         (sum: number, item: any) => sum + item.price * item.quantity,
@@ -147,12 +148,16 @@ app.post('/create-draft-order', async (c) => {
       email,
       line_items: lineItems,
       shipping_line: {
-        title: CMARKET_FREE_SHIPPING_EMAILS.includes(email)
+        title: isPickup
+          ? 'Pickup'
+          : CMARKET_FREE_SHIPPING_EMAILS.includes(email)
           ? 'Free Shipping for CMarket'
-          : (+shippingFee === 0 ? 'Free' : zoneInfo.zone) +
+          : (+shippingFee === 0 ? 'Free' : zoneInfo?.zone) +
             ' Shipping' +
-            (+shippingFee === 0 ? ' (over ' + zoneInfo.minimumOrder + ')' : ''),
-        price: shippingFee,
+            (+shippingFee === 0
+              ? ' (over ' + zoneInfo?.minimumOrder + ')'
+              : ''),
+        price: isPickup ? 0 : shippingFee,
       },
       applied_discount:
         MILDA_DISCOUNT ||
