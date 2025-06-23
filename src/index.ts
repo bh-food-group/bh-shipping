@@ -37,7 +37,7 @@ app.get('/', (c) => {
 });
 
 app.post('/create-draft-order', async (c) => {
-  const { email, postalCode, lineItems, customer, isPickup } =
+  const { email, postalCode, lineItems, customer, isPickup, note } =
     await c.req.json();
 
   const MILDA_DISCOUNT =
@@ -168,6 +168,7 @@ app.post('/create-draft-order', async (c) => {
         WILDERSNAILCOFFEE_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
+      note,
     },
   };
 
