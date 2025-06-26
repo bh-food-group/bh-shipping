@@ -236,4 +236,36 @@ app.put('/complete-draft-order', async (c) => {
   return c.json({ message: '주문이 완료되었습니다.\nOrder completed.' });
 });
 
+app.get('/api/check-draft-status', async (c) => {
+  const draftId = c.req.query('draftId');
+  if (!draftId) return c.json({ error: 'Missing draftId' }, 400);
+
+  const { SHOP, SHOPIFY_ADMIN_API_TOKEN } = env(c);
+
+  const response = await fetch(
+    `https://${SHOP}/admin/api/2024-10/graphql.json`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN as string,
+      },
+      body: JSON.stringify({
+        query: `
+        query {
+          draftOrder(id: "gid://shopify/DraftOrder/${draftId}") {
+            status
+          }
+        }
+      `,
+      }),
+    }
+  );
+
+  const result: any = await response.json();
+  const status = result?.data?.draftOrder?.status;
+
+  return c.json({ completed: status === 'completed' });
+});
+
 export default app;
