@@ -15,29 +15,12 @@ const WILDERSNAILCOFFEE_DISCOUNT_IDS = [
   8807683948853, 8807686275381, 9949616963893, 10075739423029,
 ];
 
-const CMARKET_FREE_SHIPPING_EMAILS = [
-  'milldabakery@gmail.com',
-  'ordercmarket@gmail.com',
-  'pm@cmarket.ca',
-  'coquitlam@cmarket.ca',
-];
-
-const CMARKET_5_DISCOUNT_EMAILS = [
-  'coquitlam@cmarket.ca',
-  'ordercmarket@gmail.com',
-  'pm@cmarket.ca',
-  'milldabakery@gmail.com',
-  'marketing@cmarket.ca',
-  'desk@cmarket.ca',
-  'boxd.simon@gmail.com',
-];
-
 app.get('/', (c) => {
   return c.json({ message: 'Hello, World!' });
 });
 
 app.post('/create-draft-order', async (c) => {
-  const { email, postalCode, lineItems, customer, isPickup, note } =
+  const { email, postalCode, lineItems, customer, tags, isPickup, note } =
     await c.req.json();
 
   const MILDA_DISCOUNT =
@@ -81,7 +64,7 @@ app.post('/create-draft-order', async (c) => {
         }
       : undefined;
 
-  const CMARKET_5_DISCOUNT = CMARKET_5_DISCOUNT_EMAILS.includes(email)
+  const CMARKET_5_DISCOUNT = tags.includes('cmarket')
     ? {
         description: '5% Off for CMarket',
         value: '5.0',
@@ -122,7 +105,7 @@ app.post('/create-draft-order', async (c) => {
   }
 
   let shippingFee = 0;
-  if (!isPickup && !CMARKET_FREE_SHIPPING_EMAILS.includes(email) && zoneInfo) {
+  if (!isPickup && !tags.includes('free_shipping') && zoneInfo) {
     if (zoneInfo.minimumOrder && zoneInfo.fee) {
       const subtotal = lineItems.reduce(
         (sum: number, item: any) => sum + item.price * item.quantity,
@@ -150,7 +133,7 @@ app.post('/create-draft-order', async (c) => {
       shipping_line: {
         title: isPickup
           ? 'Pickup'
-          : CMARKET_FREE_SHIPPING_EMAILS.includes(email)
+          : tags.includes('free_shipping')
           ? 'Free Shipping for CMarket'
           : (+shippingFee === 0 ? 'Free' : zoneInfo?.zone) +
             ' Shipping' +
