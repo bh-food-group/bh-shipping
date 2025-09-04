@@ -251,4 +251,24 @@ app.get('/api/check-draft-status', async (c) => {
   return c.json({ completed: status === 'completed' });
 });
 
+// Customer Order Page
+app.get('/api/orders/:id', async (c) => {
+  const orderId = c.req.param('id');
+
+  const { SHOP, SHOPIFY_ADMIN_API_TOKEN } = env(c);
+
+  const response = await fetch(
+    `https://${SHOP}/admin/api/2024-07/orders/${orderId}.json`,
+    {
+      headers: {
+        'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN as string,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  const data = (await response.json()) as any;
+  return c.json(data?.order);
+});
+
 export default app;
