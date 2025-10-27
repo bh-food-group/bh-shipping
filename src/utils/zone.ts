@@ -42,11 +42,6 @@ const zone2FSAs = [
   'V4P',
   'V4A',
   'V4B',
-  'V4C',
-  'V4E',
-  'V4G',
-  'V4K',
-  'V4L',
   'V3A',
   'V3S',
   'V3W',
@@ -55,7 +50,6 @@ const zone2FSAs = [
   'V1M',
   'V2Y',
   'V2Z',
-  'V4M',
   'V4W',
   'V6A',
   'V6B',
@@ -77,10 +71,6 @@ const zone2FSAs = [
   'V6X',
   'V6Y',
   'V6Z',
-  'V7A',
-  'V7B',
-  'V7C',
-  'V7E',
   'V7G',
   'V7H',
   'V7J',
@@ -110,6 +100,19 @@ const zone3FSAs = [
   // Chilliwack
   'V2P',
   'V2R',
+  // Delta,
+  'V4C',
+  'V4E',
+  'V4G',
+  'V4K',
+  'V4L',
+  // Twassen
+  'V4M',
+  // Richimond
+  'V7A',
+  'V7B',
+  'V7C',
+  'V7E',
 ];
 
 const zone4FSAs = [
