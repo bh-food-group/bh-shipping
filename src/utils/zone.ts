@@ -215,15 +215,15 @@ const zoneMap: Record<
 > = {};
 
 zone1FSAs.forEach((fsa) => {
-  zoneMap[fsa] = { zone: 'Zone 1', minimumOrder: 250, fee: 25 };
+  zoneMap[fsa] = { zone: 'Zone 1', minimumOrder: 350, fee: 30 };
 });
 
 zone2FSAs.forEach((fsa) => {
-  zoneMap[fsa] = { zone: 'Zone 2', minimumOrder: 300, fee: 30 };
+  zoneMap[fsa] = { zone: 'Zone 2', minimumOrder: 400, fee: 40 };
 });
 
 zone3FSAs.forEach((fsa) => {
-  zoneMap[fsa] = { zone: 'Zone 3', minimumOrder: 350, fee: 40 };
+  zoneMap[fsa] = { zone: 'Zone 3', minimumOrder: 500, fee: 50 };
 });
 
 zone4FSAs.forEach((fsa) => {
