@@ -12,7 +12,8 @@ const TEST_EMAIL = 'earlyoonj@gmail.com';
 const WILDERSNAILCOFFEE_DISCOUNT_IDS = [
   7082155933744, 7082155966512, 7082156032048, 7082156130352, 7082156195888,
   7082156261424, 7082156294192, 8134116507957, 8134118867253, 8233508471093,
-  8807683948853, 8807686275381, 9949616963893, 10075739423029,
+  8807683948853, 8807686275381, 9949616963893, 10075739423029, 10399759302965,
+  10059823612213,
 ];
 
 app.get('/', (c) => {
@@ -35,7 +36,7 @@ app.post('/create-draft-order', async (c) => {
   const PM_TABLEWARE_DISCOUNT =
     email === 'pm@cmarket.ca' &&
     lineItems.every((item: any) =>
-      item.title.toLowerCase().includes('tableware')
+      item.title.toLowerCase().includes('tableware'),
     )
       ? {
           description: 'PM Tableware 100% Off',
@@ -73,7 +74,7 @@ app.post('/create-draft-order', async (c) => {
     : undefined;
 
   const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) =>
-    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.product_id)
+    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.product_id),
   );
 
   const WILDERSNAILCOFFEE_DISCOUNT =
@@ -84,10 +85,10 @@ app.post('/create-draft-order', async (c) => {
           value: (
             wilderSnailCoffeeDiscountItems.reduce(
               (acc: number, curr: any) => acc + curr.quantity,
-              0
+              0,
             ) * 2
           ).toFixed(2),
-          value_type: 'amount',
+          value_type: 'fixed_amount',
         }
       : undefined;
 
@@ -100,7 +101,7 @@ app.post('/create-draft-order', async (c) => {
         error:
           'BC 내의 정확한 우편번호를 기재해주세요\nPlease enter valid ZIP code in BC.',
       },
-      422
+      422,
     );
   }
 
@@ -109,7 +110,7 @@ app.post('/create-draft-order', async (c) => {
     if (zoneInfo.minimumOrder && zoneInfo.fee) {
       const subtotal = lineItems.reduce(
         (sum: number, item: any) => sum + item.price * item.quantity,
-        0
+        0,
       );
       if (subtotal < zoneInfo.minimumOrder) {
         shippingFee = zoneInfo.fee;
@@ -119,7 +120,7 @@ app.post('/create-draft-order', async (c) => {
         {
           error: '배송 불가 지역입니다.\nShipping not available for this area',
         },
-        422
+        422,
       );
     }
   }
@@ -134,21 +135,21 @@ app.post('/create-draft-order', async (c) => {
         title: isPickup
           ? 'Pickup'
           : tags.includes('free_shipping')
-          ? 'Free Shipping for CMarket'
-          : (+shippingFee === 0 ? 'Free' : zoneInfo?.zone) +
-            ' Shipping' +
-            (+shippingFee === 0
-              ? ' (over ' + zoneInfo?.minimumOrder + ')'
-              : ''),
+            ? 'Free Shipping for CMarket'
+            : (+shippingFee === 0 ? 'Free' : zoneInfo?.zone) +
+              ' Shipping' +
+              (+shippingFee === 0
+                ? ' (over ' + zoneInfo?.minimumOrder + ')'
+                : ''),
         price: isPickup ? 0 : shippingFee,
       },
       applied_discount:
+        WILDERSNAILCOFFEE_DISCOUNT ||
         MILDA_DISCOUNT ||
         HQ_DISCOUNT ||
         PM_PRODUCT_DISCOUNT ||
         PM_TABLEWARE_DISCOUNT ||
-        CMARKET_5_DISCOUNT ||
-        WILDERSNAILCOFFEE_DISCOUNT,
+        CMARKET_5_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
       note,
@@ -165,7 +166,7 @@ app.post('/create-draft-order', async (c) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(draftOrderPayload),
-      }
+      },
     );
 
     if (!resp.ok) {
@@ -207,7 +208,7 @@ app.put('/complete-draft-order', async (c) => {
         'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN as string,
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   if (!resp.ok) {
@@ -242,7 +243,7 @@ app.get('/api/check-draft-status', async (c) => {
         }
       `,
       }),
-    }
+    },
   );
 
   const result: any = await response.json();
@@ -264,7 +265,7 @@ app.get('/api/orders/:id', async (c) => {
         'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN as string,
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
 
   const data = (await response.json()) as any;
