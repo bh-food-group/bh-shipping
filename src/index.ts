@@ -11,13 +11,84 @@ const TEST_EMAIL = 'earlyoonj@gmail.com';
 
 const WILDERSNAILCOFFEE_DISCOUNT_TAG = '340g';
 
+/** Product tags live on Shopify Product, not on cart line payloads — resolve by variant id for discounts. */
+async function fetchVariantProductTags(
+  shop: string,
+  token: string,
+  variantIds: number[],
+): Promise<Map<number, string[]>> {
+  const unique = [...new Set(variantIds.filter((id) => id != null))];
+  if (!unique.length) return new Map();
+
+  const response = await fetch(
+    `https://${shop}/admin/api/2025-04/graphql.json`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': token,
+      },
+      body: JSON.stringify({
+        query: `query VariantsTags($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            ... on ProductVariant {
+              id
+              product { tags }
+            }
+          }
+        }`,
+        variables: {
+          ids: unique.map((id) => `gid://shopify/ProductVariant/${id}`),
+        },
+      }),
+    },
+  );
+
+  const result = (await response.json()) as {
+    data?: { nodes?: ({ id: string; product?: { tags: string[] } } | null)[] };
+  };
+  const map = new Map<number, string[]>();
+  for (const node of result?.data?.nodes ?? []) {
+    if (!node?.id || !node.product?.tags) continue;
+    const m = node.id.match(/ProductVariant\/(\d+)/);
+    if (!m) continue;
+    map.set(Number(m[1]), node.product.tags);
+  }
+  return map;
+}
+
 app.get('/', (c) => {
   return c.json({ message: 'Hello, World!' });
 });
 
 app.post('/create-draft-order', async (c) => {
-  const { email, postalCode, lineItems, customer, tags, isPickup, note } =
-    await c.req.json();
+  const {
+    email,
+    postalCode,
+    lineItems,
+    customer,
+    tags = [],
+    isPickup,
+    note,
+  } = await c.req.json();
+
+  const { SHOP, SHOPIFY_ADMIN_API_TOKEN } = env(c);
+
+  const needsShopifyLineTags =
+    email === 'woochanp@gmail.com' || email === TEST_EMAIL;
+
+  let tagsByVariantId = new Map<number, string[]>();
+  if (needsShopifyLineTags && Array.isArray(lineItems) && lineItems.length) {
+    try {
+      tagsByVariantId = await fetchVariantProductTags(
+        SHOP as string,
+        SHOPIFY_ADMIN_API_TOKEN as string,
+        lineItems.map((item: any) => item.variant_id),
+      );
+    } catch (e) {
+      console.error('fetchVariantProductTags:', e);
+    }
+  }
 
   const MILDA_DISCOUNT =
     email === 'milldabakery@gmail.com'
@@ -68,9 +139,15 @@ app.post('/create-draft-order', async (c) => {
       }
     : undefined;
 
-  const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) =>
-    item.tags.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG),
-  );
+  const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) => {
+    const fromClient = item.tags ?? [];
+    const fromShopify =
+      tagsByVariantId.get(Number(item.variant_id)) ?? [];
+    return (
+      fromClient.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG) ||
+      fromShopify.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG)
+    );
+  });
 
   const WILDERSNAILCOFFEE_DISCOUNT =
     (email === 'woochanp@gmail.com' || email === TEST_EMAIL) &&
@@ -119,8 +196,6 @@ app.post('/create-draft-order', async (c) => {
       );
     }
   }
-
-  const { SHOP, SHOPIFY_ADMIN_API_TOKEN } = env(c);
 
   const draftOrderPayload = {
     draft_order: {
