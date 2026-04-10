@@ -9,12 +9,7 @@ app.use('*', cors());
 
 const TEST_EMAIL = 'earlyoonj@gmail.com';
 
-const WILDERSNAILCOFFEE_DISCOUNT_IDS = [
-  7082155933744, 7082155966512, 7082156032048, 7082156130352, 7082156195888,
-  7082156261424, 7082156294192, 8134116507957, 8134118867253, 8233508471093,
-  8807683948853, 8807686275381, 9949616963893, 10075739423029, 10399759302965,
-  10059823612213,
-];
+const WILDERSNAILCOFFEE_DISCOUNT_TAG = '340g';
 
 app.get('/', (c) => {
   return c.json({ message: 'Hello, World!' });
@@ -74,7 +69,7 @@ app.post('/create-draft-order', async (c) => {
     : undefined;
 
   const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) =>
-    WILDERSNAILCOFFEE_DISCOUNT_IDS.includes(item.product_id),
+    item.tags.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG),
   );
 
   const WILDERSNAILCOFFEE_DISCOUNT =
