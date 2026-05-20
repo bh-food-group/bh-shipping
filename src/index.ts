@@ -99,38 +99,6 @@ app.post('/create-draft-order', async (c) => {
         }
       : undefined;
 
-  const PM_TABLEWARE_DISCOUNT =
-    email === 'pm@cmarket.ca' &&
-    lineItems.every((item: any) =>
-      item.title.toLowerCase().includes('tableware'),
-    )
-      ? {
-          description: 'PM Tableware 100% Off',
-          value: '100.0',
-          value_type: 'percentage',
-        }
-      : undefined;
-
-  const PM_PRODUCT_DISCOUNT =
-    email === 'pm@cmarket.ca' &&
-    lineItems.every((item: any) => item.vendor === 'PM')
-      ? {
-          description: 'PM Products 100% Off',
-          value: '100.0',
-          value_type: 'percentage',
-        }
-      : undefined;
-
-  const HQ_DISCOUNT =
-    email === 'ordercmarket@gmail.com' &&
-    lineItems.every((item: any) => item.vendor === 'HQ')
-      ? {
-          description: 'HQ Products 100% Off',
-          value: '100.0',
-          value_type: 'percentage',
-        }
-      : undefined;
-
   const CMARKET_5_DISCOUNT = tags.includes('cmarket')
     ? {
         description: '5% Off for CMarket',
@@ -139,46 +107,39 @@ app.post('/create-draft-order', async (c) => {
       }
     : undefined;
 
-  const CMARKET_VENDOR_FREE_VENDORS = ['Tapio', 'STC'];
-  const processedLineItems = tags.includes('cmarket')
-    ? lineItems.map((item: any) =>
-        CMARKET_VENDOR_FREE_VENDORS.includes(item.vendor)
-          ? {
-              ...item,
-              applied_discount: {
-                description: `${item.vendor} 100% Off for CMarket`,
-                value: '100.0',
-                value_type: 'percentage',
-              },
-            }
-          : item,
-      )
-    : lineItems;
+  const isWilderSnailUser = email === 'woochanp@gmail.com' || email === TEST_EMAIL;
 
-  const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) => {
-    const fromClient = item.tags ?? [];
-    const fromShopify =
-      tagsByVariantId.get(Number(item.variant_id)) ?? [];
-    return (
-      fromClient.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG) ||
-      fromShopify.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG)
-    );
-  });
-
-  const WILDERSNAILCOFFEE_DISCOUNT =
-    (email === 'woochanp@gmail.com' || email === TEST_EMAIL) &&
-    !!wilderSnailCoffeeDiscountItems.length
-      ? {
-          description: 'WilderSnailCoffee 2$ Off',
-          value: (
-            wilderSnailCoffeeDiscountItems.reduce(
-              (acc: number, curr: any) => acc + curr.quantity,
-              0,
-            ) * 2
-          ).toFixed(2),
+  const getLineItemDiscount = (item: any) => {
+    if (tags.includes('cmarket') && ['Tapio', 'STC'].includes(item.vendor)) {
+      return { description: `${item.vendor} 100% Off for CMarket`, value: '100.0', value_type: 'percentage' };
+    }
+    if (email === 'pm@cmarket.ca' && item.title?.toLowerCase().includes('tableware')) {
+      return { description: 'PM Tableware 100% Off', value: '100.0', value_type: 'percentage' };
+    }
+    if (email === 'pm@cmarket.ca' && item.vendor === 'PM') {
+      return { description: 'PM Products 100% Off', value: '100.0', value_type: 'percentage' };
+    }
+    if (email === 'ordercmarket@gmail.com' && item.vendor === 'HQ') {
+      return { description: 'HQ Products 100% Off', value: '100.0', value_type: 'percentage' };
+    }
+    if (isWilderSnailUser) {
+      const fromClient = item.tags ?? [];
+      const fromShopify = tagsByVariantId.get(Number(item.variant_id)) ?? [];
+      if (fromClient.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG) || fromShopify.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG)) {
+        return {
+          description: 'WilderSnailCoffee $2 Off',
+          value: '2.00',
           value_type: 'fixed_amount',
-        }
-      : undefined;
+        };
+      }
+    }
+    return undefined;
+  };
+
+  const processedLineItems = lineItems.map((item: any) => {
+    const discount = getLineItemDiscount(item);
+    return discount ? { ...item, applied_discount: discount } : item;
+  });
 
   const prefix = postalCode.slice(0, 3).toUpperCase();
   const zoneInfo = getShippingZone(prefix);
@@ -230,11 +191,7 @@ app.post('/create-draft-order', async (c) => {
         price: isPickup ? 0 : shippingFee,
       },
       applied_discount:
-        WILDERSNAILCOFFEE_DISCOUNT ||
         MILDA_DISCOUNT ||
-        HQ_DISCOUNT ||
-        PM_PRODUCT_DISCOUNT ||
-        PM_TABLEWARE_DISCOUNT ||
         CMARKET_5_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
