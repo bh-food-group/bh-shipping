@@ -139,6 +139,22 @@ app.post('/create-draft-order', async (c) => {
       }
     : undefined;
 
+  const CMARKET_VENDOR_FREE_VENDORS = ['Tapio', 'STC'];
+  const processedLineItems = tags.includes('cmarket')
+    ? lineItems.map((item: any) =>
+        CMARKET_VENDOR_FREE_VENDORS.includes(item.vendor)
+          ? {
+              ...item,
+              applied_discount: {
+                description: `${item.vendor} 100% Off for CMarket`,
+                value: '100.0',
+                value_type: 'percentage',
+              },
+            }
+          : item,
+      )
+    : lineItems;
+
   const wilderSnailCoffeeDiscountItems = lineItems.filter((item: any) => {
     const fromClient = item.tags ?? [];
     const fromShopify =
@@ -200,7 +216,7 @@ app.post('/create-draft-order', async (c) => {
   const draftOrderPayload = {
     draft_order: {
       email,
-      line_items: lineItems,
+      line_items: processedLineItems,
       shipping_line: {
         title: isPickup
           ? 'Pickup'
