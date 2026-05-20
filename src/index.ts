@@ -110,7 +110,7 @@ app.post('/create-draft-order', async (c) => {
   const isWilderSnailUser = email === 'woochanp@gmail.com' || email === TEST_EMAIL;
 
   const getLineItemDiscount = (item: any) => {
-    if (tags.includes('cmarket') && ['Tapio', 'STC'].includes(item.vendor)) {
+    if (tags.includes('cmarket') && ['Tapio', 'STC', 'Costco', 'Walmart'].includes(item.vendor)) {
       return { description: `${item.vendor} 100% Off for CMarket`, value: '100.0', value_type: 'percentage' };
     }
     if (email === 'pm@cmarket.ca' && item.title?.toLowerCase().includes('tableware')) {
