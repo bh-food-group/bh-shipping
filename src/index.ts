@@ -107,25 +107,51 @@ app.post('/create-draft-order', async (c) => {
       }
     : undefined;
 
-  const isWilderSnailUser = email === 'woochanp@gmail.com' || email === TEST_EMAIL;
+  const isWilderSnailUser =
+    email === 'woochanp@gmail.com' || email === TEST_EMAIL;
 
   const getLineItemDiscount = (item: any) => {
-    if (tags.includes('cmarket') && ['Tapio', 'STC', 'Costco', 'Walmart'].includes(item.vendor)) {
-      return { description: `${item.vendor} 100% Off for CMarket`, value: '100.0', value_type: 'percentage' };
+    if (
+      tags.includes('cmarket') &&
+      ['Tapio', 'STC', 'Costco', 'Walmart', 'UNFI'].includes(item.vendor)
+    ) {
+      return {
+        description: `${item.vendor} 100% Off for CMarket`,
+        value: '100.0',
+        value_type: 'percentage',
+      };
     }
-    if (email === 'pm@cmarket.ca' && item.title?.toLowerCase().includes('tableware')) {
-      return { description: 'PM Tableware 100% Off', value: '100.0', value_type: 'percentage' };
+    if (
+      email === 'pm@cmarket.ca' &&
+      item.title?.toLowerCase().includes('tableware')
+    ) {
+      return {
+        description: 'PM Tableware 100% Off',
+        value: '100.0',
+        value_type: 'percentage',
+      };
     }
     if (email === 'pm@cmarket.ca' && item.vendor === 'PM') {
-      return { description: 'PM Products 100% Off', value: '100.0', value_type: 'percentage' };
+      return {
+        description: 'PM Products 100% Off',
+        value: '100.0',
+        value_type: 'percentage',
+      };
     }
     if (email === 'ordercmarket@gmail.com' && item.vendor === 'HQ') {
-      return { description: 'HQ Products 100% Off', value: '100.0', value_type: 'percentage' };
+      return {
+        description: 'HQ Products 100% Off',
+        value: '100.0',
+        value_type: 'percentage',
+      };
     }
     if (isWilderSnailUser) {
       const fromClient = item.tags ?? [];
       const fromShopify = tagsByVariantId.get(Number(item.variant_id)) ?? [];
-      if (fromClient.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG) || fromShopify.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG)) {
+      if (
+        fromClient.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG) ||
+        fromShopify.includes(WILDERSNAILCOFFEE_DISCOUNT_TAG)
+      ) {
         return {
           description: 'WilderSnailCoffee $2 Off',
           value: '2.00',
@@ -190,9 +216,7 @@ app.post('/create-draft-order', async (c) => {
                 : ''),
         price: isPickup ? 0 : shippingFee,
       },
-      applied_discount:
-        MILDA_DISCOUNT ||
-        CMARKET_5_DISCOUNT,
+      applied_discount: MILDA_DISCOUNT || CMARKET_5_DISCOUNT,
       customer: customer ? { id: customer.id } : undefined,
       use_customer_default_address: true,
       note,
