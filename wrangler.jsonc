@@ -11,9 +11,11 @@
 		"enabled": true
 	},
 	"vars": {
-		"SHOP": "bhfood.myshopify.com",
-		"SHOPIFY_ADMIN_API_TOKEN": "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"
+		"SHOP": "bhfood.myshopify.com"
 	},
+	// SHOPIFY_ADMIN_API_TOKEN is a secret — never commit it here.
+	// Production: `wrangler secret put SHOPIFY_ADMIN_API_TOKEN`
+	// Local dev:  put it in `.dev.vars` (gitignored)
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
